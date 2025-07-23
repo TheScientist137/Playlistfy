@@ -1,13 +1,20 @@
 import { useState, useEffect } from "react";
-import {
-  redirectToSpotifyLogin,
-  exchangeCodeForToken,
-} from "./services/pkceAuth";
+
+import LoginButton from "./components/LoginButton";
+import UserProfile from "./components/UserProfile";
+
+import type { SpotifyUser } from "./types/spotify";
+
+import { exchangeCodeForToken } from "./services/pkceAuth";
+import { getUserProfile } from './services/spotifyApi';
 
 function App() {
-  const [token, setToken] = useState<string | null>(null);
+  const [token, setToken] = useState<string | null>(localStorage.getItem("spotify_access_token"));
+  const [profile, setProfile] = useState<SpotifyUser | null>(null);
 
   useEffect(() => {
+    if (localStorage.getItem("spotify_access_token")) return;
+
     const url = new URL(window.location.href);
     const code = url.searchParams.get('code');
     if (!code) return; // No code => nothing to do
@@ -23,6 +30,16 @@ function App() {
       });
   }, []);
 
+  useEffect(() => {
+    if (!token) return;
+
+    getUserProfile(token).then((data) => {
+      console.log(data);
+      setProfile(data);
+    }).catch((error) => console.error(error));
+
+  }, [token]);
+
   const handleLogOut = () => {
     localStorage.clear();
     setToken(null);
@@ -32,14 +49,9 @@ function App() {
     <main>
       <h1>Welcome to Playlistfy</h1>
       {token ? (
-        <>
-          <p>Welcome back! Access token: {token}</p>
-          <button onClick={() => handleLogOut()}>Log out</button>
-        </>
+        <UserProfile profile={profile} onLogout={handleLogOut} />
       ) : (
-        <button onClick={() => redirectToSpotifyLogin()}>
-          Login with Spotify!
-        </button>
+        <LoginButton />
       )}
     </main>
   );

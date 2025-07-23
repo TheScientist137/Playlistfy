@@ -88,6 +88,6 @@ export const exchangeCodeForToken = async (code: string) => {
   if (!res.ok) throw new Error(`Token exchange failed: ${res.statusText}`);
 
   const data = await res.json();
-  window.localStorage.removeItem('spotify_code_verifier'); // cleanup storage
+  window.localStorage.removeItem("spotify_code_verifier"); // cleanup storage
   return data;
 };
