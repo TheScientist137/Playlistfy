@@ -2,15 +2,19 @@ import { useState, useEffect } from "react";
 
 import LoginButton from "./components/LoginButton";
 import UserProfile from "./components/UserProfile";
+import SearchBar from "./components/SearchBar";
+import Tracklist from "./components/Tracklist";
 
-import type { SpotifyUser } from "./types/spotify";
+import type { SpotifyUser, SpotifyTrack } from "./types/spotify";
 
 import { exchangeCodeForToken } from "./services/pkceAuth";
-import { getUserProfile } from './services/spotifyApi';
+import { getUserProfile, searchTracks } from './services/spotifyApi';
 
 function App() {
   const [token, setToken] = useState<string | null>(localStorage.getItem("spotify_access_token"));
   const [profile, setProfile] = useState<SpotifyUser | null>(null);
+  const [tracks, setTracks] = useState<SpotifyTrack[] | null>(null);
+  const [searchLoading, setSearchLoading] = useState(false);
 
   useEffect(() => {
     if (localStorage.getItem("spotify_access_token")) return;
@@ -40,6 +44,22 @@ function App() {
 
   }, [token]);
 
+  const handleSearch = async (query: string) => {
+    if (!query) {
+      setTracks([]);
+      return;
+    }
+    try {
+      const data = await searchTracks(token!, query);
+      setTracks(data.tracks.items);
+    } catch (error) {
+      setTracks([]);
+      console.error('Error searching for tracks');
+    } finally {
+      setSearchLoading(false);
+    }
+  }
+
   const handleLogOut = () => {
     localStorage.clear();
     setToken(null);
@@ -49,7 +69,11 @@ function App() {
     <main>
       <h1>Welcome to Playlistfy</h1>
       {token ? (
-        <UserProfile profile={profile} onLogout={handleLogOut} />
+        <>
+          <UserProfile profile={profile} onLogout={handleLogOut} />
+          <SearchBar onSearch={handleSearch} />
+          <Tracklist tracks={tracks} />
+        </>
       ) : (
         <LoginButton />
       )}

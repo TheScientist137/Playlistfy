@@ -6,7 +6,7 @@ interface UserProfileProps {
 }
 
 export default function UserProfile({ profile, onLogout }: UserProfileProps) {
-  if (!profile) return <p>Loading...</p>
+   if (!profile) return <p>Loading...</p>
 
   return (
     <div>
