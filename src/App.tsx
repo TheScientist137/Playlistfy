@@ -5,7 +5,7 @@ import UserProfile from "./components/UserProfile";
 import SearchBar from "./components/SearchBar";
 import Tracklist from "./components/Tracklist";
 
-import type { SpotifyUser, SpotifyTrack } from "./types/spotify";
+import type { SpotifyUser, SpotifyTrack, SpotifyPlaylist } from "./types/spotify";
 
 import { exchangeCodeForToken } from "./services/pkceAuth";
 import {
@@ -16,15 +16,18 @@ import {
 
 function App() {
   const [token, setToken] = useState<string | null>(
-    localStorage.getItem("spotify_access_token"),
+    localStorage.getItem("spotify_access_token")
   );
   const [profile, setProfile] = useState<SpotifyUser | null>(null);
   const [tracks, setTracks] = useState<SpotifyTrack[] | null>(null);
   const [searchLoading, setSearchLoading] = useState(false);
+
   const [playlist, setPlaylist] = useState<SpotifyPlaylist | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
 
+  // Effect for authorization with token
   useEffect(() => {
+    // If already is a token => return
     if (localStorage.getItem("spotify_access_token")) return;
 
     const url = new URL(window.location.href);
@@ -42,6 +45,7 @@ function App() {
       });
   }, []);
 
+  // Effect for user info if it is already logued in
   useEffect(() => {
     if (!token) return;
 
@@ -53,6 +57,7 @@ function App() {
       .catch((error) => console.error(error));
   }, [token]);
 
+  // Search handler
   const handleSearch = async (query: string) => {
     if (!query) {
       setTracks([]);
@@ -69,13 +74,15 @@ function App() {
     }
   };
 
-  const handleCreatePlaylist = async () => {
+  // Create playlist handler
+  const handleCreatePlaylist = async (name: string, description: string) => {
     if (!token || !profile) return;
     try {
       const newPlaylist = await createPlaylist(
         token,
         profile.id,
-        "My Playlistfy Mix",
+        name,
+        description
       );
       setPlaylist(newPlaylist);
       setShowSuccess(true);
@@ -90,6 +97,7 @@ function App() {
   };
 
   const handleLogOut = () => {
+
     localStorage.clear();
     setToken(null);
     setProfile(null);
