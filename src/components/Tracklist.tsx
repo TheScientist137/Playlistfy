@@ -8,7 +8,7 @@ export default function Tracklist({ tracks }: Props) {
   return (
     <ul>
       {tracks?.map((track) => (
-        <li>
+        <li key={track.id}>
           <img
             src={track.album.images[0]?.url}
             alt={track.name}

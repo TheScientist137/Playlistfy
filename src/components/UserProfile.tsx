@@ -8,7 +8,7 @@ interface UserProfileProps {
 export default function UserProfile({ profile, onLogout }: UserProfileProps) {
    if (!profile) return <p>Loading...</p>
 
-  return (
+   return (
     <div>
       <p>Welcome back {profile.display_name}!</p>
       {profile.images?.[0]?.url ? (
