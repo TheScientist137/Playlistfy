@@ -33,7 +33,7 @@ function App() {
 
     exchangeCodeForToken(code)
       .then((data) => {
-        localStorage.setItem("spotify_access_token", data.access_token);
+        localStorage.setItem("spotifycess_token", data.access_token);
         setToken(data.access_token);
         window.history.replaceState({}, document.title, "/"); // Clean URL
       })
