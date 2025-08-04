@@ -2,6 +2,7 @@ import type {
   SpotifyUser,
   SpotifyTrack,
   SpotifyPlaylist,
+  SpotifyPlaylistList,
 } from "../types/spotify";
 
 export const getUserProfile = async (token: string): Promise<SpotifyUser> => {
@@ -34,6 +35,19 @@ export const searchTracks = async (
   );
 
   if (!res.ok) throw new Error("Search tracks failed");
+  return res.json();
+};
+
+export const getCurrentUserPlaylists = async (
+  token: string,
+): Promise<SpotifyPlaylistList> => {
+  const res = await fetch(`https://api.spotify.com/v1/me/playlists`, {
+    method: "GET",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!res.ok) throw new Error("Error getting user playlists");
+
   return res.json();
 };
 

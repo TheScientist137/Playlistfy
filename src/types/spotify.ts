@@ -71,3 +71,23 @@ export interface SpotifyPlaylist {
   };
 }
 
+export interface SpotifyPlaylistList {
+  href: string;
+  limit: string;
+  items: {
+    id: string;
+    type: string;
+    href: string;
+    uri: string;
+    name: string;
+    tracks: {
+      href: string;
+      total: number;
+    };
+    images: {
+      url: string;
+      height: number | null;
+      width: string | null;
+    }[];
+  };
+}
