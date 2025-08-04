@@ -1,11 +1,19 @@
 import { useState, useEffect } from "react";
 
-import LoginButton from "./components/LoginButton";
-import UserProfile from "./components/UserProfile";
-import SearchBar from "./components/SearchBar";
-import Tracklist from "./components/Tracklist";
+import LoginButton from "./components/LoginButton.tsx";
+import UserProfile from "./components/UserProfile.tsx";
 
-import type { SpotifyUser, SpotifyTrack, SpotifyPlaylist } from "./types/spotify";
+import SearchBar from "./components/SearchBar.tsx";
+import CreatePlaylistForm from "./components/CreatePlaylistForm.tsx";
+
+import Tracklist from "./components/Tracklist";
+import PlaylistList from "./components/PlaylistList";
+
+import type {
+  SpotifyUser,
+  SpotifyTrack,
+  SpotifyPlaylist,
+} from "./types/spotify";
 
 import { exchangeCodeForToken } from "./services/pkceAuth";
 import {
@@ -16,11 +24,13 @@ import {
 
 function App() {
   const [token, setToken] = useState<string | null>(
-    localStorage.getItem("spotify_access_token")
+    localStorage.getItem("spotify_access_token"),
   );
   const [profile, setProfile] = useState<SpotifyUser | null>(null);
   const [tracks, setTracks] = useState<SpotifyTrack[] | null>(null);
+
   const [searchLoading, setSearchLoading] = useState(false);
+  const [showForm, setShowForm] = useState(false);
 
   const [playlist, setPlaylist] = useState<SpotifyPlaylist | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -34,11 +44,14 @@ function App() {
     const code = url.searchParams.get("code");
     if (!code) return; // No code => nothing to do
 
+    // 3. Limpiamos la URL **antes** de la segunda montura
+    // El segundo render no ve "code" ya que lo hemos limpiado
+    window.history.replaceState({}, "", "/");
+
     exchangeCodeForToken(code)
       .then((data) => {
-        localStorage.setItem("spotifycess_token", data.access_token);
+        localStorage.setItem("spotify_access_token", data.access_token);
         setToken(data.access_token);
-        window.history.replaceState({}, document.title, "/"); // Clean URL
       })
       .catch((error) => {
         console.error(error);
@@ -82,7 +95,7 @@ function App() {
         token,
         profile.id,
         name,
-        description
+        description,
       );
       setPlaylist(newPlaylist);
       setShowSuccess(true);
@@ -97,34 +110,38 @@ function App() {
   };
 
   const handleLogOut = () => {
-
-    localStorage.clear();
+    localStorage.removeItem("spotify_access_token");
     setToken(null);
     setProfile(null);
     setTracks([]);
   };
 
-  if (searchLoading) return <p>Loading...</p>;
+  if (!token) return <LoginButton />;
+  if (!profile) return <p>Loading profile</p>;
+
   return (
     <main>
       <h1>Welcome to Playlistfy</h1>
-      {token ? (
-        <>
-          <UserProfile profile={profile} onLogout={handleLogOut} />
-          <SearchBar onSearch={handleSearch} />
-          <Tracklist tracks={tracks} />
+      <UserProfile profile={profile} onLogout={handleLogOut} />
+      <SearchBar onSearch={handleSearch} />
+      <Tracklist tracks={tracks} />
 
-          {!showSuccess && (
-            <button onClick={handleCreatePlaylist} style={{ marginTop: 16 }}>
-              Create playlist
-            </button>
-          )}
+      <PlaylistList token={token} />
 
-          {showSuccess && <p>Playlist creada ✅</p>}
-        </>
-      ) : (
-        <LoginButton />
+      {!showForm && !showSuccess && (
+        <button onClick={() => setShowForm(true)} style={{ marginTop: 16 }}>
+          Create new playlist
+        </button>
       )}
+
+      {showForm && (
+        <div>
+          <CreatePlaylistForm />
+          <button onClick={() => setShowForm(false)}>close</button>
+        </div>
+      )}
+
+      {showSuccess && <p>Playlist creada ✅</p>}
     </main>
   );
 }
