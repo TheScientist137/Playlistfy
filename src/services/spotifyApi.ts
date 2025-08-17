@@ -2,10 +2,15 @@ import type {
   SpotifyUser,
   SpotifyTrack,
   SpotifyPlaylist,
-  SpotifyPlaylistList,
 } from "../types/spotify";
 
-export const getUserProfile = async (token: string): Promise<SpotifyUser> => {
+import type { UserPlaylistList } from "../components/PlaylistList";
+
+import { getAccessToken } from "./pkceAuth";
+
+export const getUserProfile = async (): Promise<SpotifyUser> => {
+  const token = await getAccessToken();
+
   const res = await fetch("https://api.spotify.com/v1/me", {
     method: "GET",
     headers: { Authorization: `Bearer ${token}` },
@@ -16,14 +21,15 @@ export const getUserProfile = async (token: string): Promise<SpotifyUser> => {
 };
 
 export const searchTracks = async (
-  token: string,
   query: string,
   limit = 10,
 ): Promise<SpotifyTrack[]> => {
+  const token = await getAccessToken();
+
   const params = new URLSearchParams({
     q: query,
     type: "track",
-    limit: String(limit),
+    limit: limit.toString(),
   });
 
   const res = await fetch(
@@ -38,9 +44,13 @@ export const searchTracks = async (
   return res.json();
 };
 
-export const getCurrentUserPlaylists = async (
-  token: string,
-): Promise<SpotifyPlaylistList> => {
+// ----------------------------------------------------------------------------------
+// Manage playlists services
+// ----------------------------------------------------------------------------------
+
+export const getCurrentUserPlaylists = async (): Promise<UserPlaylistList> => {
+  const token = await getAccessToken();
+
   const res = await fetch(`https://api.spotify.com/v1/me/playlists`, {
     method: "GET",
     headers: { Authorization: `Bearer ${token}` },
@@ -52,11 +62,12 @@ export const getCurrentUserPlaylists = async (
 };
 
 export const createPlaylist = async (
-  token: string,
   user_id: string,
   name: string,
   description: string,
 ): Promise<SpotifyPlaylist> => {
+  const token = await getAccessToken();
+
   const res = await fetch(
     `https://api.spotify.com/v1/users/${user_id}/playlists`,
     {
