@@ -1,17 +1,23 @@
-export interface UserImage {
-  height: number;
-  url: string;
-  width: number;
-}
+// -------------------------------------
+// User profile type
+// -------------------------------------
 
-export interface SpotifyUser {
+export interface UserProfileType {
   id: string;
   display_name: string;
   email: string;
-  images: UserImage[];
+  images: {
+    height: number;
+    url: string;
+    width: number;
+  }[];
 }
 
-interface Album {
+// -------------------------------------
+//  Track type
+// -------------------------------------
+
+interface AlbumType {
   id: string;
   type: string;
   href: string;
@@ -28,7 +34,7 @@ interface Album {
   }[];
 }
 
-interface Artist {
+interface ArtistType {
   id: string;
   type: string;
   href: string;
@@ -44,10 +50,14 @@ export interface SpotifyTrack {
   uri: string;
   name: string;
   duration_ms: number;
-  album: Album;
-  artists: Artist[];
+  album: AlbumType;
+  artists: ArtistType[];
   external_urls: { spotify: string };
 }
+
+// -------------------------------------
+//  Tracks type
+// -------------------------------------
 
 export interface TracksSearchResponse {
   tracks: {
@@ -55,7 +65,11 @@ export interface TracksSearchResponse {
   };
 }
 
-export interface SpotifyPlaylist {
+// -------------------------------------
+// Playlist type
+// -------------------------------------
+
+export interface PlaylistType {
   id: string;
   type: string;
   href: string;
@@ -71,7 +85,11 @@ export interface SpotifyPlaylist {
   };
 }
 
-export interface SpotifyPlaylistList {
+// -------------------------------------
+// Playlist list type
+// -------------------------------------
+
+export interface PlaylistListType {
   href: string;
   limit: string;
   items: {
@@ -88,6 +106,6 @@ export interface SpotifyPlaylistList {
       url: string;
       height: number | null;
       width: string | null;
-    }[];
-  };
+    };
+  }[];
 }
