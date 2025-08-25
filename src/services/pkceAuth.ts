@@ -18,6 +18,8 @@ const SCOPES = [
   "user-read-email",
   "playlist-modify-public",
   "playlist-modify-private",
+  "user-read-playback-state",
+  "user-modify-playback-state",
 ];
 
 // ---------------------------------------------------------------------------
