@@ -1,23 +1,66 @@
-// -------------------------------------
-// User profile type
-// -------------------------------------
+// -----------------------------------------------------------------
+// Common Types
+// -----------------------------------------------------------------
 
-export interface UserProfileType {
+export interface Image {
+  url: string;
+  height: number | null;
+  width: number | null;
+}
+
+export interface ExternalUrls {
+  spotify: string;
+}
+
+// -----------------------------------------------------------------
+// User Types
+// -----------------------------------------------------------------
+
+export interface UserProfile {
   id: string;
   display_name: string;
   email: string;
-  images: {
-    height: number;
-    url: string;
-    width: number;
-  }[];
+  images: Image[];
 }
 
-// -------------------------------------
-//  Track type
-// -------------------------------------
+// -----------------------------------------------------------------
+// Tracks Types
+// -----------------------------------------------------------------
 
-interface AlbumType {
+export interface Track {
+  id: string;
+  type: string;
+  href: string;
+  uri: string;
+  name: string;
+  duration_ms: number;
+  album: Album;
+  artists: Artist[];
+  external_urls: ExternalUrls;
+}
+
+// -----------------------------------------------------------------
+// Artists Types
+// -----------------------------------------------------------------
+export interface Artist {
+  id: string;
+  type: string;
+  href: string;
+  uri: string;
+  name: string;
+  external_urls: ExternalUrls;
+  followers: {
+    total: number;
+  };
+  genres: string[];
+  images: Image[];
+}
+
+// -----------------------------------------------------------------
+// Albums Types
+// -----------------------------------------------------------------
+
+export interface Album {
   id: string;
   type: string;
   href: string;
@@ -26,86 +69,59 @@ interface AlbumType {
   album_type: string;
   total_tracks: number;
   available_markets: string[];
-  external_urls: { spotify: string };
-  images: {
-    url: string;
-    height: number | null;
-    width: number | null;
-  }[];
+  external_urls: ExternalUrls;
+  images: Image[];
+  release_date: string;
+  artists: Artist[];
+  tracks: Track;
 }
 
-interface ArtistType {
-  id: string;
-  type: string;
+// -----------------------------------------------------------------
+// Playlists Types
+// -----------------------------------------------------------------
+
+export interface Playlist {
   href: string;
-  uri: string;
-  name: string;
-  external_urls: { spotify: string };
-}
-
-export interface SpotifyTrack {
   id: string;
-  type: string;
-  href: string;
-  uri: string;
   name: string;
-  duration_ms: number;
-  album: AlbumType;
-  artists: ArtistType[];
-  external_urls: { spotify: string };
-}
-
-// -------------------------------------
-//  Tracks type
-// -------------------------------------
-
-export interface TracksSearchResponse {
+  type: string;
+  uri: string;
+  images: Image[];
   tracks: {
-    items: SpotifyTrack[];
+    href: string;
+    total: number;
   };
 }
 
-// -------------------------------------
-// Playlist type
-// -------------------------------------
-
-export interface PlaylistType {
-  id: string;
-  type: string;
+export interface UserPlaylistList {
   href: string;
-  uri: string;
-  name: string;
-  description: string | null;
-  owmer: {
-    id: string;
-    type: string;
-    href: string;
-    uri: string;
-    display_name: string | null;
-  };
+  limit: number;
+  next: string | null;
+  offset: number;
+  previous: string | null;
+  total: number;
+  items: Playlist[];
 }
 
-// -------------------------------------
-// Playlist list type
-// -------------------------------------
+// -----------------------------------------------------------------
+// Search Types
+// -----------------------------------------------------------------
 
-export interface PlaylistListType {
+export type SearchType = "track" | "album" | "artist" | "playlist";
+
+export interface Paginated<Type> {
   href: string;
-  limit: string;
-  items: {
-    id: string;
-    type: string;
-    href: string;
-    uri: string;
-    name: string;
-    tracks: {
-      href: string;
-      total: number;
-    };
-    images: {
-      url: string;
-      height: number | null;
-      width: string | null;
-    };
-  }[];
+  limit: number;
+  next: string | null;
+  offset: number;
+  previous: string;
+  total: number;
+  items: Type[];
+}
+
+export interface SearchResponse {
+  tracks?: Paginated<Track>;
+  artists?: Paginated<Artist>;
+  albums?: Paginated<Album>;
+  playlists?: Paginated<Playlist>;
 }
