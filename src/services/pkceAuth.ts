@@ -13,6 +13,7 @@ const AUTH_URL = new URL("https://accounts.spotify.com/authorize");
 const TOKEN_URL = "https://accounts.spotify.com/api/token";
 
 const SCOPES = [
+  "streaming",
   "user-read-private",
   "user-read-email",
   "playlist-modify-public",

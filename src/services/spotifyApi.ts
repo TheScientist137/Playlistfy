@@ -1,14 +1,17 @@
+import { getAccessToken } from "./pkceAuth";
 import type {
-  SpotifyUser,
-  SpotifyTrack,
-  SpotifyPlaylist,
+  UserProfile,
+  UserPlaylistList,
+  Playlist,
+  SearchType,
+  SearchResponse,
 } from "../types/spotify";
 
-import type { UserPlaylistList } from "../components/PlaylistList";
+// ----------------------------------------------------------------------------------
+// Profile services
+// ----------------------------------------------------------------------------------
 
-import { getAccessToken } from "./pkceAuth";
-
-export const getUserProfile = async (): Promise<SpotifyUser> => {
+export const getUserProfile = async (): Promise<UserProfile> => {
   const token = await getAccessToken();
 
   const res = await fetch("https://api.spotify.com/v1/me", {
@@ -20,16 +23,24 @@ export const getUserProfile = async (): Promise<SpotifyUser> => {
   return await res.json();
 };
 
-export const searchTracks = async (
+// ----------------------------------------------------------------------------------
+// Search services
+// ----------------------------------------------------------------------------------
+
+export const search = async (
   query: string,
-  limit = 10,
-): Promise<SpotifyTrack[]> => {
+  type: SearchType,
+  limit: number = 20,
+  offset: number = 0,
+): Promise<SearchResponse> => {
   const token = await getAccessToken();
 
   const params = new URLSearchParams({
     q: query,
-    type: "track",
+    type: type,
+    market: "ES",
     limit: limit.toString(),
+    offset: offset.toString(),
   });
 
   const res = await fetch(
@@ -45,7 +56,7 @@ export const searchTracks = async (
 };
 
 // ----------------------------------------------------------------------------------
-// Manage playlists services
+//  Playlists services
 // ----------------------------------------------------------------------------------
 
 export const getCurrentUserPlaylists = async (): Promise<UserPlaylistList> => {
@@ -65,7 +76,7 @@ export const createPlaylist = async (
   user_id: string,
   name: string,
   description: string,
-): Promise<SpotifyPlaylist> => {
+): Promise<Playlist> => {
   const token = await getAccessToken();
 
   const res = await fetch(
