@@ -27,22 +27,34 @@ export interface UserProfile {
 // Tracks Types
 // -----------------------------------------------------------------
 
-export interface Track {
+export interface TrackType {
   id: string;
   type: string;
   href: string;
   uri: string;
   name: string;
   duration_ms: number;
-  album: Album;
-  artists: Artist[];
+  album: AlbumType;
+  artists: ArtistType[];
   external_urls: ExternalUrls;
+  available_markets: string[];
+  disc_number: number;
+  explicit: boolean;
+  external_ids: {
+    dis: string;
+    ean: string;
+    upc: string;
+  };
+  is_playable: boolean;
+  popularity: number;
+  track_number: number;
+  is_local: boolean;
 }
 
 // -----------------------------------------------------------------
 // Artists Types
 // -----------------------------------------------------------------
-export interface Artist {
+export interface ArtistType {
   id: string;
   type: string;
   href: string;
@@ -60,7 +72,7 @@ export interface Artist {
 // Albums Types
 // -----------------------------------------------------------------
 
-export interface Album {
+export interface AlbumType {
   id: string;
   type: string;
   href: string;
@@ -72,15 +84,15 @@ export interface Album {
   external_urls: ExternalUrls;
   images: Image[];
   release_date: string;
-  artists: Artist[];
-  tracks: Track;
+  artists: ArtistType[];
+  tracks: TrackType;
 }
 
 // -----------------------------------------------------------------
 // Playlists Types
 // -----------------------------------------------------------------
 
-export interface Playlist {
+export interface PlaylistType {
   href: string;
   id: string;
   name: string;
@@ -93,14 +105,38 @@ export interface Playlist {
   };
 }
 
-export interface UserPlaylistList {
+export interface UserPlaylistListType {
   href: string;
   limit: number;
   next: string | null;
   offset: number;
   previous: string | null;
   total: number;
-  items: Playlist[];
+  items: PlaylistType[];
+}
+
+// -----------------------------------------------------------------
+// Episode Types
+// -----------------------------------------------------------------
+export interface EpisodeType {
+  id: string;
+  type: "episode";
+  uri: string;
+  name: string;
+  description: string;
+  html_description: string;
+  duration_ms: number;
+  explicit: boolean;
+  href: string;
+  is_externally_hosted: boolean;
+  is_playable: boolean;
+  languages: string[];
+  release_date: string;
+  release_date_precision: "year" | "month" | "day";
+  show: {
+    uri: string;
+    name: string;
+  };
 }
 
 // -----------------------------------------------------------------
@@ -120,8 +156,38 @@ export interface Paginated<Type> {
 }
 
 export interface SearchResponse {
-  tracks?: Paginated<Track>;
-  artists?: Paginated<Artist>;
-  albums?: Paginated<Album>;
-  playlists?: Paginated<Playlist>;
+  tracks?: Paginated<TrackType>;
+  artists?: Paginated<ArtistType>;
+  albums?: Paginated<AlbumType>;
+  playlists?: Paginated<PlaylistType>;
+}
+
+// -----------------------------------------------------------------
+// Playback Types
+// -----------------------------------------------------------------
+
+export interface PlaybackStateType {
+  device: {
+    id: string | null;
+    is_active: boolean;
+    is_private_session: boolean;
+    is_restricted: boolean;
+    name: string;
+    type: "computer" | "smartphone" | "speaker";
+    volume_percent: number | null;
+    supports_volume: boolean;
+  };
+  repeate_state: "off" | "track" | "context";
+  shuffle_state: boolean;
+  context: {
+    type: string;
+    href: string;
+    external_urls: ExternalUrls;
+    uri: string;
+  } | null;
+  timestamp: number;
+  progress_ms: number;
+  is_playing: boolean;
+  item: TrackType | EpisodeType;
+  currently_playing_type: string;
 }
