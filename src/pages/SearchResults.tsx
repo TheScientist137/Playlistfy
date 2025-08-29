@@ -1,6 +1,11 @@
 import { useEffect } from "react";
+import { Link } from "react-router";
 import { useStore } from "../stores/useStore";
-import type { SearchResponse, SearchType } from "../types/spotify";
+import { usePlayerStore } from "../stores/usePlayerStore";
+import { FaPlayCircle, FaPauseCircle, FaPlusCircle } from "react-icons/fa";
+import type { SearchResponse, SearchType, TrackType } from "../types/spotify";
+import Track from "../components/Track";
+import SearchBar from "../components/SearchBar";
 
 export default function SearchResults() {
   const {
@@ -8,12 +13,14 @@ export default function SearchResults() {
     searchType,
     searchOffset,
     searchLimit,
+    searchResults,
+    loadingSearch,
     setSearchType,
     setSearchOffset,
     fetchSearchResults,
-    searchResults,
-    loadingSearch,
   } = useStore();
+
+  const { playTrack, pause, isPaused, currentTrack } = usePlayerStore();
 
   // Fetch results depending on query, type and offset
   useEffect(() => {
@@ -22,7 +29,7 @@ export default function SearchResults() {
     fetchSearchResults(searchQuery, searchType, searchOffset);
   }, [searchQuery, searchType, searchOffset]);
 
-  // Pagination
+  // Pagination (Reahcer mejorando y entendiendo mejor el proceso)
   const pageType = searchType + "s";
   const results = searchResults?.[pageType as keyof SearchResponse];
   const total = results?.total ?? 0;
@@ -47,11 +54,14 @@ export default function SearchResults() {
     { label: "Playlists", value: "playlist" },
   ];
 
+  // pages/SearchResults.tsx - Agrega logs para debuggear
   // Persist data between renders
 
   return (
-    <div>
-      <h2>Search results for: {searchQuery}</h2>
+    <div className="h-full flex flex-col justify-between">
+      <SearchBar />
+
+      <h2>results for: {searchQuery}</h2>
 
       <nav>
         {tabs.map((tab) => (
@@ -73,26 +83,29 @@ export default function SearchResults() {
             {searchType === "track" &&
               searchResults.tracks?.items.map((item) => (
                 <li key={item.id} className="flex justify-between">
-                  <span>{item.name}</span>
-                  <div className="">
-                    <button>Play</button>
-                    <button>Add</button>
-                  </div>
+                  <Track track={item} />
                 </li>
               ))}
+
             {searchType === "artist" &&
               searchResults.artists?.items.map((item) => (
-                <li key={item.id}>{item.name}</li>
+                <li key={item.id}>
+                  <Link to={`/artist/${item.id}`}>{item.name}</Link>
+                </li>
               ))}
 
             {searchType === "album" &&
               searchResults.albums?.items.map((item) => (
-                <li key={item.id}>{item.name}</li>
+                <li key={item.id}>
+                  <Link to={`/album/${item.id}`}>{item.name}</Link>
+                </li>
               ))}
 
             {searchType === "playlist" &&
               searchResults.playlists?.items?.map((item) => (
-                <li key={item?.id}>{item?.name}</li>
+                <li key={item?.id}>
+                  <Link to={`/playlist/${item?.id}`}>{item?.name}</Link>
+                </li>
               ))}
           </ul>
         </div>
