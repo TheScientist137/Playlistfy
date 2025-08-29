@@ -1,19 +1,30 @@
 import { create } from "zustand";
 import {
   getUserProfile,
+  getAlbum,
+  getArtist,
   getCurrentUserPlaylists,
   search,
+  getArtistAlbums,
+  getPlaylist,
 } from "../services/spotifyApi";
 import type {
   UserProfile,
-  UserPlaylistList,
+  UserPlaylistListType,
+  AlbumType,
+  ArtistType,
   SearchResponse,
   SearchType,
+  PlaylistType,
 } from "../types/spotify";
 
 interface StoreState {
   profile: UserProfile | null;
-  playlists: UserPlaylistList | null;
+  playlists: UserPlaylistListType | null;
+  album: AlbumType | null;
+  artist: ArtistType | null;
+  artistAlbums: AlbumType[] | null;
+  playlist: PlaylistType | null;
 
   searchQuery: string;
   searchType: SearchType;
@@ -33,6 +44,10 @@ interface StoreState {
     type: SearchType,
     offset: number,
   ) => Promise<void>;
+  fetchAlbum: (id: string) => void;
+  fetchArtist: (id: string) => void;
+  fetchArtistAlbums: (id: string) => void;
+  fetchPlaylist: (id: string) => void;
 
   setSearchQuery: (query: string) => void;
   setSearchType: (type: SearchType) => void;
@@ -44,6 +59,10 @@ interface StoreState {
 export const useStore = create<StoreState>((set, get) => ({
   profile: null,
   playlists: null,
+  album: null,
+  artist: null,
+  artistAlbums: null,
+  playlist: null,
 
   searchQuery: "",
   searchType: "track",
@@ -51,6 +70,7 @@ export const useStore = create<StoreState>((set, get) => ({
   searchLimit: 20,
   searchResults: null,
 
+  // Añadir loading para todas las paginas ?????
   loadingProfile: false,
   loadingPlaylists: false,
   loadingSearch: false,
@@ -100,6 +120,46 @@ export const useStore = create<StoreState>((set, get) => ({
     }
   },
 
+  fetchAlbum: async (id: string) => {
+    try {
+      const data = await getAlbum(id);
+      set({ album: data });
+    } catch (error) {
+      console.error("Failed to obtain album", error);
+      set({ album: null });
+    }
+  },
+
+  fetchArtist: async (id: string) => {
+    try {
+      const data = await getArtist(id);
+      set({ artist: data });
+    } catch (error) {
+      console.error("Failed to obtain artist", error);
+      set({ artist: null });
+    }
+  },
+
+  fetchArtistAlbums: async (id: string) => {
+    try {
+      const data = await getArtistAlbums(id);
+      set({ artistAlbums: data });
+    } catch (error) {
+      console.error("Failed to obtain artist albums", error);
+      set({ artistAlbums: null });
+    }
+  },
+
+  fetchPlaylist: async (id: string) => {
+    try {
+      const data = await getPlaylist(id);
+      set({ playlist: data });
+    } catch (error) {
+      console.error("Failed to obtain playlist");
+      set({ playlist: null });
+    }
+  },
+
   setSearchQuery: (query) => set({ searchQuery: query }),
   setSearchType: (type) => set({ searchType: type }),
   setSearchOffset: (offset) => set({ searchOffset: offset }),
@@ -108,7 +168,6 @@ export const useStore = create<StoreState>((set, get) => ({
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
     localStorage.removeItem("expires_in");
-
     set({ profile: null, playlists: null });
   },
 }));
