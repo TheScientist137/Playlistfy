@@ -2,11 +2,13 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
 import { Link } from "react-router";
 import { useStore } from "../stores/useStore";
+import { usePlayerStore } from "../stores/usePlayerStore";
 import { FaHome } from "react-icons/fa";
 import spotifyLogo from "../assets/spotify-logo.svg";
 
 export default function Header() {
   const { profile, logout } = useStore();
+  const { logoutPlayer } = usePlayerStore();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
 
@@ -30,12 +32,13 @@ export default function Header() {
   }, []);
 
   const handleLogout = () => {
+    logoutPlayer();
     logout();
     navigate("/login");
   };
 
   return (
-    <header className="w-full px-6 py-2 flex items-center gap-4 justify-between bg-stone-800">
+    <header className="w-full px-6 py-2 flex items-center gap-4 justify-between bg-stone-900">
       <div className="flex items-center gap-4">
         <img src={spotifyLogo} alt="Spotify logo" className="h-8 w-8" />
         <Link to="/" className="">
