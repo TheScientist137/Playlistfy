@@ -20,7 +20,10 @@ export default function Home() {
       <SearchBar redirectOnSubmit={true} />
 
       <div className="mb-6">
-        <button className="bg-stone-900 hover:bg-stone-800 px-4 py-2 rounded-lg">
+        <button
+          onClick={() => navigate("/playlist/new")}
+          className="bg-stone-900 hover:bg-stone-800 px-4 py-2 rounded-lg cursor-pointer"
+        >
           New Playlist
         </button>
       </div>
@@ -28,9 +31,9 @@ export default function Home() {
       <div className="">
         <button
           onClick={() => navigate("/playlists")}
-          className="bg-stone-900 hover:bg-stone-800 px-4 py-2 rounded-lg"
+          className="bg-stone-900 hover:bg-stone-800 px-4 py-2 rounded-lg cursor-pointer"
         >
-          Manage Playlists
+          Your Library
         </button>
       </div>
     </div>
