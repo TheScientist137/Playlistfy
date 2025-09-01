@@ -96,9 +96,11 @@ export interface PlaylistType {
   href: string;
   id: string;
   name: string;
+  description: string;
+  collaborative: boolean;
   type: string;
   uri: string;
-  images: Image[];
+  images?: Image[];
   tracks: {
     href: string;
     total: number;
