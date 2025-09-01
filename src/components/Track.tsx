@@ -1,8 +1,21 @@
+import { useState } from "react";
 import { usePlayerStore } from "../stores/usePlayerStore";
+import AddToPlaylistModal from "./AddToPlaylistModal";
 import { FaPlayCircle, FaPauseCircle, FaPlusCircle } from "react-icons/fa";
+import { IoIosRemoveCircle } from "react-icons/io";
+import type { TrackType } from "../types/spotify";
 
-export default function Track({ track }) {
+type Props = {
+  track: TrackType;
+  isInPlaylist: boolean;
+  onRemove?: (uri: string) => void;
+};
+
+export default function Track({ track, isInPlaylist, onRemove }: Props) {
+  const [showModal, setShowModal] = useState(false);
   const { currentTrack, isPaused, playTrack, pause } = usePlayerStore();
+
+  // MEJORAR ISINPLAYLIST FLOW !!!
 
   return (
     <div className="w-full flex justify-between">
@@ -17,9 +30,23 @@ export default function Track({ track }) {
             <FaPlayCircle onClick={() => playTrack(track.uri)} />
           )}
         </button>
-        <button>
-          <FaPlusCircle />
-        </button>
+
+        {isInPlaylist ? (
+          <button onClick={() => setShowModal(true)}>
+            <FaPlusCircle />
+          </button>
+        ) : (
+          <button onClick={() => onRemove?.(track.uri)}>
+            <IoIosRemoveCircle />
+          </button>
+        )}
+
+        {showModal && (
+          <AddToPlaylistModal
+            trackUri={track.uri}
+            onClose={() => setShowModal(false)}
+          />
+        )}
       </div>
     </div>
   );
