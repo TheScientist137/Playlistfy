@@ -20,6 +20,7 @@ const SCOPES = [
   "playlist-modify-private",
   "user-read-playback-state",
   "user-modify-playback-state",
+  "ugc-image-upload",
 ];
 
 // ---------------------------------------------------------------------------
