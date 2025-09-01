@@ -5,6 +5,7 @@ import { Outlet } from "react-router";
 import Header from "./Header";
 import Footer from "./Footer";
 import Player from "./Player.tsx";
+import FeedbackModal from "./FeedbackModal.tsx";
 
 export default function Dashboard() {
   const { fetchProfile, fetchUserPlaylists } = useStore();
@@ -22,6 +23,8 @@ export default function Dashboard() {
       <main className="flex-1 p-6 overflow-auto">
         <Outlet />
       </main>
+
+      <FeedbackModal />
 
       <div>
         {currentTrack && <Player />}
