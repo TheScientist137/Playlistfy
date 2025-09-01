@@ -1,13 +1,12 @@
 import { useEffect } from "react";
-import { Link } from "react-router";
+import { Link, useSearchParams } from "react-router";
 import { useStore } from "../stores/useStore";
-import { usePlayerStore } from "../stores/usePlayerStore";
-import { FaPlayCircle, FaPauseCircle, FaPlusCircle } from "react-icons/fa";
-import type { SearchResponse, SearchType, TrackType } from "../types/spotify";
 import Track from "../components/Track";
 import SearchBar from "../components/SearchBar";
+import type { SearchResponse, SearchType } from "../types/spotify";
 
 export default function SearchResults() {
+  const [searchParams] = useSearchParams(); // Read url
   const {
     searchQuery,
     searchType,
@@ -15,18 +14,35 @@ export default function SearchResults() {
     searchLimit,
     searchResults,
     loadingSearch,
+    setSearchQuery,
     setSearchType,
     setSearchOffset,
     fetchSearchResults,
   } = useStore();
 
-  const { playTrack, pause, isPaused, currentTrack } = usePlayerStore();
+  // Component mounts => read URL => upload store
+  useEffect(() => {
+    const q = searchParams.get("q") || "";
+    const type = (searchParams.get("type") as SearchType) || "track";
+    const offset = Number(searchParams.get("offset")) || 0;
 
-  // Fetch results depending on query, type and offset
+    setSearchQuery(q);
+    setSearchType(type);
+    setSearchOffset(offset);
+  }, []);
+
+  // if there is a query => Search => Upload URL with store values
   useEffect(() => {
     if (!searchQuery) return;
-
     fetchSearchResults(searchQuery, searchType, searchOffset);
+
+    const newParams = new URLSearchParams();
+    if (searchQuery) newParams.set("q", searchQuery);
+    newParams.set("type", searchType); // no if => There is always a type
+    if (searchOffset) newParams.set("offset", String(searchOffset));
+
+    // Change url without a page reload
+    window.history.replaceState(null, "", `?${newParams.toString()}`);
   }, [searchQuery, searchType, searchOffset]);
 
   // Pagination (Reahcer mejorando y entendiendo mejor el proceso)
@@ -54,28 +70,25 @@ export default function SearchResults() {
     { label: "Playlists", value: "playlist" },
   ];
 
-  // pages/SearchResults.tsx - Agrega logs para debuggear
-  // Persist data between renders
-
   return (
-    <div className="h-full flex flex-col justify-between">
+    <div className="h-full flex flex-col items-center">
       <SearchBar />
 
-      <h2>results for: {searchQuery}</h2>
-
-      <nav>
+      <nav className="flex gap-2">
         {tabs.map((tab) => (
-          <button key={tab.value} onClick={() => setSearchType(tab.value)}>
+          <button
+            key={tab.value}
+            onClick={() => setSearchType(tab.value)}
+            className="p-2 bg-stone-800 rounded-lg cursor-pointer"
+          >
             {tab.label}
           </button>
         ))}
       </nav>
 
-      {loadingSearch && <p>Searching…</p>}
+      {searchQuery && <h2>Results for {searchQuery}</h2>}
 
-      {!loadingSearch && !searchResults && (
-        <p>No results for “{searchQuery}”</p>
-      )}
+      {loadingSearch && <p>Searching…</p>}
 
       {searchResults && (
         <div>
@@ -83,7 +96,7 @@ export default function SearchResults() {
             {searchType === "track" &&
               searchResults.tracks?.items.map((item) => (
                 <li key={item.id} className="flex justify-between">
-                  <Track track={item} />
+                  <Track track={item} isInPlaylist={true} />
                 </li>
               ))}
 
@@ -104,7 +117,7 @@ export default function SearchResults() {
             {searchType === "playlist" &&
               searchResults.playlists?.items?.map((item) => (
                 <li key={item?.id}>
-                  <Link to={`/playlist/${item?.id}`}>{item?.name}</Link>
+                  <Link to={`/playlist/public/${item?.id}`}>{item?.name}</Link>
                 </li>
               ))}
           </ul>
