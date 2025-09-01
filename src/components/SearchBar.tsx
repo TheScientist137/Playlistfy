@@ -19,7 +19,9 @@ export default function SearchBar({ redirectOnSubmit }: props) {
 
     setSearchQuery(trimmed);
 
-    if (redirectOnSubmit) navigate("/search");
+    if (redirectOnSubmit) {
+      navigate(`/search?q=${encodeURIComponent(value)}&type=track&offset=0`);
+    }
   };
 
   return (
