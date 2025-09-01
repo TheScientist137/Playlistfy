@@ -149,6 +149,116 @@ export const createPlaylist = async (
   return res.json();
 };
 
+export const setPlaylistCover = async (
+  playlist_id: string,
+  base64: string,
+): Promise<void> => {
+  const token = await getAccessToken();
+
+  const res = await fetch(
+    `https://api.spotify.com/v1/playlists/${playlist_id}/images`,
+    {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "image/jpeg",
+      },
+      body: base64,
+    },
+  );
+
+  if (!res.ok) throw new Error("Failed to upload playlist cover image");
+};
+
+export const addItemsToPlaylist = async (
+  playlist_id: string,
+  uris: string[],
+): Promise<void> => {
+  const token = await getAccessToken();
+
+  const res = await fetch(
+    `https://api.spotify.com/v1/playlists/${playlist_id}/tracks`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ uris }),
+    },
+  );
+
+  if (!res.ok) throw new Error("Failed to add item to playlist");
+};
+
+export const removeItemsFromPlaylist = async (
+  playlistId: string,
+  uris: string[],
+): Promise<void> => {
+  const token = await getAccessToken();
+
+  const res = await fetch(
+    `https://api.spotify.com/v1/playlists/${playlistId}/tracks`,
+    {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ tracks: uris.map((uri) => ({ uri })) }),
+    },
+  );
+
+  if (!res.ok) throw new Error("Failed to remove item from playlist");
+};
+
+export const followPlaylist = async (playlist_id: string) => {
+  const token = await getAccessToken();
+
+  const res = await fetch(
+    `https://api.spotify.com/v1/playlists/${playlist_id}/followers`,
+    {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  );
+
+  if (!res.ok) throw new Error("Failed to follow playlist");
+};
+
+export const unFollowPlaylist = async (playlist_id: string) => {
+  const token = await getAccessToken();
+
+  const res = await fetch(
+    `https://api.spotify.com/v1/playlists/${playlist_id}/followers`,
+    {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    },
+  );
+
+  if (!res.ok) throw new Error("Failed to unfollow playlist");
+};
+
+export const currentUserFollowsPlaylist = async (playlist_id: string) => {
+  const token = await getAccessToken();
+
+  const res = await fetch(
+    `https://api.spotify.com/v1/playlists/${playlist_id}/followers/contains`,
+    {
+      method: "GET",
+      headers: { Authorization: `Bearer ${token}` },
+    },
+  );
+
+  if (!res.ok)
+    throw new Error("Failed to get boolean if current user follows playlist");
+
+  return res.json();
+};
+
 // ----------------------------------------------------------------------------------
 //  Playback services
 // ----------------------------------------------------------------------------------
