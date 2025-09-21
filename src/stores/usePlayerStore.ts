@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { getAccessToken } from "../services/pkceAuth";
-import { playUris, transferPlayback } from "../services/spotifyApi";
+import { playUris, transferPlayback } from "../services/playerApi";
 
 interface PlayerStore {
   deviceId: string | null;
