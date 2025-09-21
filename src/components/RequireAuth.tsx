@@ -6,6 +6,8 @@ interface Props {
   children: React.ReactNode;
 }
 
+// COMPROBAR NECESIDAD Y MEJORAR
+
 export default function RequireAuth({ children }: Props) {
   const [loading, setLoading] = useState(true);
   const [authorized, setAuthorized] = useState(false);

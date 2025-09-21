@@ -1,16 +1,18 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
 import { Link } from "react-router";
-import { useStore } from "../stores/useStore";
+import { useUserStore } from "../stores/useUserStore";
+import { useAuthStore } from "../stores/useAuthStore";
 import { usePlayerStore } from "../stores/usePlayerStore";
 import { FaHome } from "react-icons/fa";
 import spotifyLogo from "../assets/spotify-logo.svg";
 
 export default function Header() {
-  const { profile, logout } = useStore();
-  const { logoutPlayer } = usePlayerStore();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
+  const { profile } = useUserStore();
+  const { logout } = useAuthStore();
+  const { logoutPlayer } = usePlayerStore();
 
   // Reference menu container to detect clicks outside the menu
   const menuRef = useRef<HTMLDivElement | null>(null);

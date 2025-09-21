@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router";
-import { useStore } from "../stores/useStore";
+import { useSearchStore } from "../stores/useSearchStore";
 import { FaSearch } from "react-icons/fa";
 
 interface props {
@@ -10,7 +10,7 @@ interface props {
 export default function SearchBar({ redirectOnSubmit }: props) {
   const [value, setValue] = useState("");
   const navigate = useNavigate();
-  const { setSearchQuery, searchQuery } = useStore();
+  const { setSearchQuery, searchQuery, searchType } = useSearchStore();
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -20,7 +20,9 @@ export default function SearchBar({ redirectOnSubmit }: props) {
     setSearchQuery(trimmed);
 
     if (redirectOnSubmit) {
-      navigate(`/search?q=${encodeURIComponent(value)}&type=track&offset=0`);
+      navigate(
+        `/search?q=${encodeURIComponent(value)}&type=${searchType}&offset=0`,
+      );
     }
   };
 
