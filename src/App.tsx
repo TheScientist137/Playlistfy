@@ -5,7 +5,6 @@ import RequireAuth from "./components/RequireAuth.tsx";
 import Home from "./pages/Home.tsx";
 import Dashboard from "./components/Dashboard.tsx";
 import SearchResults from "./pages/SearchResults.tsx";
-import UserPlaylist from "./pages/UserPlaylist.tsx";
 import UserLibrary from "./pages/UserLibrary.tsx";
 import Album from "./pages/Album.tsx";
 import Artist from "./pages/Artist.tsx";
@@ -26,12 +25,11 @@ function App() {
         }
       >
         <Route index element={<Home />} />
-        <Route path="playlists" element={<UserLibrary />} />
+        <Route path="library" element={<UserLibrary />} />
         <Route path="search" element={<SearchResults />} />
         <Route path="album/:id" element={<Album />} />
         <Route path="artist/:id" element={<Artist />} />
-        <Route path="playlist/:id" element={<UserPlaylist />} />
-        <Route path="playlist/public/:id" element={<Playlist />} />
+        <Route path="playlist/:id" element={<Playlist />} />
         <Route path="playlist/new" element={<CreatePlaylist />} />
       </Route>
     </Routes>
