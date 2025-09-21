@@ -12,6 +12,15 @@ export interface ExternalUrls {
   spotify: string;
 }
 
+export type TrackContext =
+  | "userPlaylist" // playlist del usuario (puede editar)
+  | "playlist" // playlist de otro (solo ver)
+  | "album"
+  | "track"
+  | "search"
+  | "library"
+  | "artist";
+
 // -----------------------------------------------------------------
 // User Types
 // -----------------------------------------------------------------
@@ -21,6 +30,24 @@ export interface UserProfile {
   display_name: string;
   email: string;
   images: Image[];
+  country: string;
+  followers: { total: number };
+  product: string; // premium || free
+  type: "user";
+  uri: string;
+}
+
+// -----------------------------------------------------------------
+// User Types
+// -----------------------------------------------------------------
+export interface SearchType {
+  href: string;
+  limit: number;
+  next: string | null;
+  offset: number;
+  previous: string | null;
+  total: number;
+  items: TrackType[] | AlbumType[] | ArtistType[] | PlaylistType[];
 }
 
 // -----------------------------------------------------------------
@@ -66,6 +93,22 @@ export interface ArtistType {
   };
   genres: string[];
   images: Image[];
+}
+
+export interface ArtistTopTracks {
+  tracks: TrackType[];
+}
+
+export interface ArtistCursorPage {
+  href: string;
+  limit: number;
+  next: string;
+  cursors: {
+    after: string;
+    before: string;
+  };
+  total: number;
+  item: ArtistType[];
 }
 
 // -----------------------------------------------------------------
@@ -144,8 +187,6 @@ export interface EpisodeType {
 // -----------------------------------------------------------------
 // Search Types
 // -----------------------------------------------------------------
-
-export type SearchType = "track" | "album" | "artist" | "playlist";
 
 export interface Paginated<Type> {
   href: string;
