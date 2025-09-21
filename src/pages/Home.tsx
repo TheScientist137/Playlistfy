@@ -1,10 +1,10 @@
 import { useNavigate } from "react-router";
-import { useStore } from "../stores/useStore";
+import { useUserStore } from "../stores/useUserStore";
 import SearchBar from "../components/SearchBar";
 
 export default function Home() {
   const navigate = useNavigate();
-  const { profile, loadingProfile } = useStore();
+  const { profile, loadingProfile } = useUserStore();
 
   if (loadingProfile) return <p>Loading...</p>;
 
@@ -30,7 +30,7 @@ export default function Home() {
 
       <div className="">
         <button
-          onClick={() => navigate("/playlists")}
+          onClick={() => navigate("/library")}
           className="bg-stone-900 hover:bg-stone-800 px-4 py-2 rounded-lg cursor-pointer"
         >
           Your Library

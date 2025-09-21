@@ -1,8 +1,11 @@
 import { useEffect } from "react";
 import { Link, useSearchParams } from "react-router";
-import { useStore } from "../stores/useStore";
+import { useSearchStore } from "../stores/useSearchStore";
+import { useAlbumStore } from "../stores/useAlbumStore";
+import { useUserStore } from "../stores/useUserStore";
 import Track from "../components/Track";
 import SearchBar from "../components/SearchBar";
+import { FiPlusCircle, FiMinusCircle } from "react-icons/fi";
 import type { SearchResponse, SearchType } from "../types/spotify";
 
 export default function SearchResults() {
@@ -18,7 +21,16 @@ export default function SearchResults() {
     setSearchType,
     setSearchOffset,
     fetchSearchResults,
-  } = useStore();
+  } = useSearchStore();
+  const { savedAlbumsMap, saveAlbums, removeSavedAlbums } = useAlbumStore();
+  const {
+    followedArtistsMap,
+    followedPlaylistsMap,
+    unFollowArtistOrUser,
+    followArtistOrUser,
+    followPlaylist,
+    unFollowPlaylist,
+  } = useUserStore();
 
   // Component mounts => read URL => upload store
   useEffect(() => {
@@ -33,7 +45,7 @@ export default function SearchResults() {
 
   // if there is a query => Search => Upload URL with store values
   useEffect(() => {
-    if (!searchQuery) return;
+    if (!searchQuery || !searchType) return;
     fetchSearchResults(searchQuery, searchType, searchOffset);
 
     const newParams = new URLSearchParams();
@@ -44,6 +56,10 @@ export default function SearchResults() {
     // Change url without a page reload
     window.history.replaceState(null, "", `?${newParams.toString()}`);
   }, [searchQuery, searchType, searchOffset]);
+
+  useEffect(() => {
+    return () => useSearchStore.getState().resetSearch();
+  }, []);
 
   // Pagination (Reahcer mejorando y entendiendo mejor el proceso)
   const pageType = searchType + "s";
@@ -70,6 +86,25 @@ export default function SearchResults() {
     { label: "Playlists", value: "playlist" },
   ];
 
+  const handleSaveAlbum = async (albumId: string) => {
+    const currentlySaved = savedAlbumsMap[albumId];
+    currentlySaved
+      ? await removeSavedAlbums(albumId)
+      : await saveAlbums(albumId);
+  };
+  const handleFollowArtist = async (artistId: string) => {
+    const currentlyFollowed = followedArtistsMap[artistId];
+    currentlyFollowed
+      ? await unFollowArtistOrUser("artist", artistId)
+      : await followArtistOrUser("artist", artistId);
+  };
+  const handleFollowPlaylist = async (playlistId: string) => {
+    const currentlyFollowed = followedPlaylistsMap[playlistId];
+    currentlyFollowed
+      ? await unFollowPlaylist(playlistId)
+      : await followPlaylist(playlistId);
+  };
+
   return (
     <div className="h-full flex flex-col items-center">
       <SearchBar />
@@ -86,56 +121,118 @@ export default function SearchResults() {
         ))}
       </nav>
 
-      {searchQuery && <h2>Results for {searchQuery}</h2>}
-
       {loadingSearch && <p>Searching…</p>}
 
       {searchResults && (
-        <div>
-          <ul>
-            {searchType === "track" &&
-              searchResults.tracks?.items.map((item) => (
-                <li key={item.id} className="flex justify-between">
-                  <Track track={item} isInPlaylist={true} />
-                </li>
-              ))}
+        <ul className="w-full flex flex-col items-center gap-6 mt-4 overflow-auto">
+          {searchType === "track" &&
+            searchResults.tracks?.items.map((item) => (
+              <li key={item.id} className="w-full">
+                <Track track={item} context="search" />
+              </li>
+            ))}
 
-            {searchType === "artist" &&
-              searchResults.artists?.items.map((item) => (
-                <li key={item.id}>
-                  <Link to={`/artist/${item.id}`}>{item.name}</Link>
-                </li>
-              ))}
+          {searchType === "album" &&
+            searchResults.albums?.items.map((item) => (
+              <li
+                key={item.id}
+                className="w-full px-6 flex justify-between items-center gap-8"
+              >
+                <Link to={`/album/${item.id}`} className="w-full flex gap-4">
+                  <img src={item.images[0]?.url} className="size-16" />
+                  <div className="flex flex-col justify-center">
+                    <span>{item.name}</span>
+                    <span className="text-stone-400">
+                      {item.artists[0]?.name}
+                    </span>
+                  </div>
+                </Link>
 
-            {searchType === "album" &&
-              searchResults.albums?.items.map((item) => (
-                <li key={item.id}>
-                  <Link to={`/album/${item.id}`}>{item.name}</Link>
-                </li>
-              ))}
+                <button
+                  onClick={() => handleSaveAlbum(item.id)}
+                  className="cursor-pointer"
+                >
+                  {savedAlbumsMap[item.id] ? (
+                    <FiMinusCircle className="size-5 text-green-500" />
+                  ) : (
+                    <FiPlusCircle className="size-5" />
+                  )}
+                </button>
+              </li>
+            ))}
 
-            {searchType === "playlist" &&
-              searchResults.playlists?.items?.map((item) => (
-                <li key={item?.id}>
-                  <Link to={`/playlist/public/${item?.id}`}>{item?.name}</Link>
-                </li>
-              ))}
-          </ul>
-        </div>
-      )}
+          {searchType === "artist" &&
+            searchResults.artists?.items.map((item) => (
+              <li
+                key={item.id}
+                className="w-full px-6 flex justify-between items-center gap-8"
+              >
+                <Link
+                  to={`/artist/${item.id}`}
+                  className="w-full flex items-center gap-4"
+                >
+                  <img
+                    src={item.images[0]?.url}
+                    className="size-18 rounded-full"
+                  />
+                  <span>{item.name}</span>
+                </Link>
 
-      {total > 0 && (
-        <nav>
-          <button onClick={prevPage} disabled={!canPrev}>
-            prev
-          </button>
-          <span>
-            Page {currentPage} / {totalPages}
-          </span>
-          <button onClick={nextPage} disabled={!canNext}>
-            next
-          </button>
-        </nav>
+                <button
+                  onClick={() => handleFollowArtist(item.id)}
+                  className="border rounded-xl px-3 py-1 border-stone-400 border-2 cursor-pointer"
+                >
+                  {followedArtistsMap[item.id] ? "unfollow" : "follow"}
+                </button>
+              </li>
+            ))}
+
+          {searchType === "playlist" &&
+            searchResults.playlists?.items?.map((item) => {
+              if (!item || !item.id) return null;
+              return (
+                <li
+                  key={item.id}
+                  className="w-full px-6 flex justify-between items-center gap-8"
+                >
+                  <Link
+                    to={`/playlist/${item.id}`}
+                    className="flex items-center gap-4"
+                  >
+                    {item.images?.[0] && (
+                      <img src={item.images[0].url} className="size-16" />
+                    )}
+                    <span>{item.name}</span>
+                  </Link>
+
+                  <button
+                    onClick={() => handleFollowPlaylist(item.id)}
+                    className="cursor-pointer"
+                  >
+                    {followedPlaylistsMap[item.id] ? (
+                      <FiMinusCircle className="size-5 text-green-500" />
+                    ) : (
+                      <FiPlusCircle className="size-5" />
+                    )}
+                  </button>
+                </li>
+              );
+            })}
+
+          {total > 0 && (
+            <nav>
+              <button onClick={prevPage} disabled={!canPrev}>
+                prev
+              </button>
+              <span>
+                Page {currentPage} / {totalPages}
+              </span>
+              <button onClick={nextPage} disabled={!canNext}>
+                next
+              </button>
+            </nav>
+          )}
+        </ul>
       )}
     </div>
   );

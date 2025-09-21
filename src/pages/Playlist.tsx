@@ -1,50 +1,71 @@
 import { useEffect } from "react";
 import { useParams } from "react-router";
-import { useStore } from "../stores/useStore";
+import { usePlaylistStore } from "../stores/usePlaylistStore";
+import { useUserStore } from "../stores/useUserStore";
 import Track from "../components/Track";
-import { FaPlusCircle } from "react-icons/fa";
-import { IoMdRemoveCircle } from "react-icons/io";
+import Loading from "../components/Loading";
+import { FiPlusCircle, FiMinusCircle } from "react-icons/fi";
 
 export default function Playlist() {
   const { id } = useParams();
+  const { playlist, loadingPlaylist, fetchPlaylist } = usePlaylistStore();
   const {
-    fetchPlaylist,
-    playlist,
-    isFollowing,
-    fetchUserFollowsPlaylist,
+    profile,
+    followedPlaylistsMap,
     followPlaylist,
     unFollowPlaylist,
-  } = useStore();
+    checkCurrentUserFollowsPlaylist,
+  } = useUserStore();
 
   useEffect(() => {
     if (!id) return;
-
     fetchPlaylist(id);
-    fetchUserFollowsPlaylist(id);
+    checkCurrentUserFollowsPlaylist([id]);
   }, []);
 
-  // Quitar el estado local !!!!!! Manejar con estado de playlist (id)
-
-  const handleFollow = async () => {
-    if (!id) return;
-    isFollowing ? await unFollowPlaylist(id) : followPlaylist(id);
+  const handleFollowPlaylist = async (playlistId: string) => {
+    const currentlyFollowed = followedPlaylistsMap[playlistId];
+    currentlyFollowed
+      ? await unFollowPlaylist(playlistId)
+      : await followPlaylist(playlistId);
   };
+
+  const isOwner =
+    playlist?.owner?.id === profile?.id || playlist?.collaborative || false;
+
+  if (loadingPlaylist || !playlist) return <Loading />;
 
   return (
     <div className="h-full flex flex-col justify-between items-center">
-      <img src={playlist?.images?.[0]?.url} />
+      <img src={playlist.images?.[0]?.url} />
 
       <div className="flex gap-2">
         <p>{playlist?.name}</p>
-        <button onClick={handleFollow} className="cursor-pointer">
-          {isFollowing ? <IoMdRemoveCircle /> : <FaPlusCircle />}
+
+        <button
+          onClick={() => handleFollowPlaylist(playlist.id)}
+          className="cursor-pointer"
+        >
+          {followedPlaylistsMap[playlist.id] ? (
+            <FiMinusCircle className="size-5 text-green-500" />
+          ) : (
+            <FiPlusCircle className="size-5" />
+          )}
         </button>
+
+        {isOwner && <button>add tracks</button>}
       </div>
 
-      <ul className="overflow-auto p-4">
-        {playlist?.tracks?.items?.map((item) => (
-          <li key={item.track.id}>
-            <Track track={item.track} isInPlaylist={true} />
+      <ul className="overflow-auto p-4 flex flex-col gap-6">
+        {/* Ensure every key is unique */}
+        {playlist?.tracks?.items?.map((item, index) => (
+          <li key={`${item.track.id} - ${index}`}>
+            <Track
+              track={item.track}
+              context="playlist"
+              ownPlaylist={isOwner}
+              playlistId={playlist.id}
+            />
           </li>
         ))}
       </ul>

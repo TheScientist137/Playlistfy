@@ -1,13 +1,14 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router";
-import { exchangeCodeForToken } from "../services/pkceAuth";
+import { useAuthStore } from "../stores/useAuthStore";
 
 export default function Callback() {
   const navigate = useNavigate();
+  const { exchange } = useAuthStore();
 
   useEffect(() => {
     const handleCallback = async () => {
-      // Get exchange token
+      // Get code from url
       const urlParams = new URLSearchParams(window.location.search);
       const code = urlParams.get("code");
 
@@ -16,15 +17,19 @@ export default function Callback() {
 
       // Exchange code for token - clean url - navigate home
       try {
-        await exchangeCodeForToken(code);
+        await exchange(code);
         window.history.replaceState({}, "", "/");
         navigate("/");
       } catch (error) {
         console.error("error exchanging token", error);
+        navigate("/login");
       }
     };
 
     handleCallback();
   }, []);
+
+  // Intentar evitar el parpadeo !!
+
   return <p>Processing login...</p>;
 }
