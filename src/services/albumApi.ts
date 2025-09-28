@@ -1,5 +1,5 @@
 import { useAuthStore } from "../stores/useAuthStore";
-import type { AlbumType } from "../types/spotify";
+import type { AlbumsPageType, AlbumType } from "../types/spotify";
 
 // -------------------------------------------------------------------------------
 // Get Album
@@ -26,13 +26,18 @@ export const getAlbum = async (id: string): Promise<AlbumType> => {
 // Get User's Saved Albums - Improve => pages response => type
 // -------------------------------------------------------------------------------
 
-export const getUserSavedAlbums = async () => {
+export const getUserSavedAlbums = async (
+  offset: number,
+): Promise<AlbumsPageType> => {
   const token = await useAuthStore.getState().getAccessToken();
 
-  const res = await fetch("https://api.spotify.com/v1/me/albums", {
-    method: "GET",
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  const res = await fetch(
+    `https://api.spotify.com/v1/me/albums?offset=${offset}`,
+    {
+      method: "GET",
+      headers: { Authorization: `Bearer ${token}` },
+    },
+  );
 
   if (!res.ok) throw new Error("Failed to obtain user saved albums");
 
