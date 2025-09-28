@@ -9,20 +9,24 @@ import {
   userFollowsArtistsOrUsers,
   currentUserFollowsPlaylist,
 } from "../services/userApi";
-import type { ArtistType, UserProfile } from "../types/spotify";
+import type { ArtistCursorPageType, UserProfile } from "../types/spotify";
 
 interface UserStore {
   profile: UserProfile | null;
-  followedArtists: ArtistType[] | null;
+  followedArtists: ArtistCursorPageType | null;
 
   followedArtistsMap: Record<string, boolean>;
   followedPlaylistsMap: Record<string, boolean>;
+
+  cursorAfter: string | null;
+  cursorBefore: string | null;
+  nextUrl: string | null;
 
   loadingProfile: boolean;
   loadingFollowedArtists: boolean;
 
   fetchProfile: () => Promise<void>;
-  fetchFollowedArtists: () => Promise<void>;
+  fetchFollowedArtists: (after?: string, before?: string) => Promise<void>;
 
   followArtistOrUser: (type: string, ids: string) => Promise<void>;
   unFollowArtistOrUser: (type: string, ids: string) => Promise<void>;
@@ -43,6 +47,10 @@ export const useUserStore = create<UserStore>((set, get) => ({
 
   followedArtistsMap: {},
   followedPlaylistsMap: {},
+
+  cursorAfter: null,
+  cursorBefore: null,
+  nextUrl: null,
 
   loadingProfile: false,
   loadingFollowedArtists: false,
@@ -88,11 +96,18 @@ export const useUserStore = create<UserStore>((set, get) => ({
     }
   },
 
-  fetchFollowedArtists: async () => {
+  fetchFollowedArtists: async (after, before) => {
     set({ loadingFollowedArtists: true });
     try {
-      const data = await getFollowedArtists();
-      set({ followedArtists: data.artists });
+      const data = await getFollowedArtists(after, before);
+      const artistPage = data.artists;
+
+      set({
+        followedArtists: artistPage,
+        cursorAfter: artistPage.cursors.after || null,
+        cursorBefore: artistPage.cursors.before || null,
+        nextUrl: artistPage.next,
+      });
     } catch (error) {
       console.error("Failed to load followed artists", error);
     } finally {

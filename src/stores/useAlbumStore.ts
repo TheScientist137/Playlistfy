@@ -6,18 +6,21 @@ import {
   removeUserSavedAlbums,
   saveAlbumsForCurrentUser,
 } from "../services/albumApi";
-import type { AlbumType } from "../types/spotify";
+import type { AlbumType, AlbumsPageType } from "../types/spotify";
 
 interface AlbumStore {
   album: AlbumType | null;
-  savedAlbums: AlbumType[] | null;
+  savedAlbums: AlbumsPageType | null;
   savedAlbumsMap: Record<string, boolean>; // album - boolean
+
+  nextAlbumsUrl: string | null;
+  prevAlbumsUrl: string | null;
 
   loadingAlbum: boolean;
   loadingSavedAlbums: boolean;
 
   fetchAlbum: (id: string) => Promise<void>;
-  fetchSavedAlbums: () => Promise<void>;
+  fetchSavedAlbums: (offset: number) => Promise<void>;
 
   saveAlbums: (ids: string) => Promise<void>;
   removeSavedAlbums: (ids: string) => Promise<void>;
@@ -31,6 +34,9 @@ export const useAlbumStore = create<AlbumStore>((set, get) => ({
   album: null,
   savedAlbums: null,
   savedAlbumsMap: {},
+
+  nextAlbumsUrl: null,
+  prevAlbumsUrl: null,
 
   loadingAlbum: false,
   loadingSavedAlbums: false,
@@ -46,12 +52,16 @@ export const useAlbumStore = create<AlbumStore>((set, get) => ({
       set({ loadingAlbum: false });
     }
   },
-  fetchSavedAlbums: async () => {
+  fetchSavedAlbums: async (offset) => {
     set({ loadingSavedAlbums: true });
 
     try {
-      const data = await getUserSavedAlbums();
-      set({ savedAlbums: data });
+      const data = await getUserSavedAlbums(offset);
+      set({
+        savedAlbums: data,
+        nextAlbumsUrl: data.next,
+        prevAlbumsUrl: data.previous,
+      });
     } catch (error) {
       console.error(error);
     } finally {

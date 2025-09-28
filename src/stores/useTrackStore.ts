@@ -5,15 +5,18 @@ import {
   removeUserSavedTracks,
   checkUserSavedTracks,
 } from "../services/trackApi";
-import type { TrackType } from "../types/spotify";
+import type { TracksPageType } from "../types/spotify";
 
 interface TrackStore {
-  savedTracks: [] | null;
+  savedTracks: TracksPageType | null;
   savedTracksMap: Record<string, boolean>;
+
+  nextTracksUrl: string | null;
+  prevTracksUrl: string | null;
 
   loadingSavedTracks: boolean;
 
-  fetchSavedTracks: () => Promise<void>;
+  fetchSavedTracks: (offset: number) => Promise<void>;
 
   saveTracks: (ids: string[]) => Promise<void>;
   unSaveTracks: (ids: string) => Promise<void>;
@@ -26,20 +29,28 @@ export const useTrackStore = create<TrackStore>((set, get) => ({
   savedTracks: null,
   savedTracksMap: {},
 
+  nextTracksUrl: null,
+  prevTracksUrl: null,
+
   loadingSavedTracks: false,
 
-  fetchSavedTracks: async () => {
+  fetchSavedTracks: async (offset) => {
     const { savedTracksMap } = get();
     set({ loadingSavedTracks: true });
     try {
-      const saved = await getUserSavedTracks(10, 0);
+      const saved = await getUserSavedTracks(offset);
 
       const newSavedMap = { ...savedTracksMap };
       saved?.items.forEach((item) => {
         newSavedMap[item.track.id] = true;
       });
 
-      set({ savedTracks: saved, savedTracksMap: newSavedMap });
+      set({
+        savedTracks: saved,
+        savedTracksMap: newSavedMap,
+        nextTracksUrl: saved.next,
+        prevTracksUrl: saved.previous,
+      });
     } catch (error) {
       console.error(error);
     } finally {
@@ -64,6 +75,8 @@ export const useTrackStore = create<TrackStore>((set, get) => ({
     const { savedTracksMap, savedTracks } = get();
 
     try {
+      if (!savedTracks) return;
+
       await removeUserSavedTracks(ids);
 
       const newSavedMap = { ...savedTracksMap };

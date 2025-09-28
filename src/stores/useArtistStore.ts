@@ -15,7 +15,7 @@ interface ArtistStore {
   reset: () => void;
 }
 
-export const useArtistStore = create<ArtistStore>((set, get) => ({
+export const useArtistStore = create<ArtistStore>((set) => ({
   artist: null,
   artistAlbums: null,
 

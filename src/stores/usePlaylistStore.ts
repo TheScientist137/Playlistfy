@@ -7,19 +7,22 @@ import {
   createPlaylist,
   addCustomPlaylistCover,
 } from "../services/playlistApi";
-import type { PlaylistType, UserPlaylistListType } from "../types/spotify";
+import type { PlaylistType, PlaylistsPageType } from "../types/spotify";
 import { fileToBase64 } from "../utils/utils";
 
 interface PlaylistStore {
   playlist: PlaylistType | null;
-  currentUserPlaylists: UserPlaylistListType | null;
+  currentUserPlaylists: PlaylistsPageType | null;
   playlistTracksMap: Record<string, boolean>;
+
+  nextPlaylistsUrl: string | null;
+  prevPlaylistsUrl: string | null;
 
   loadingPlaylist: boolean;
   loadingCurrentUserPlaylists: boolean;
 
   fetchPlaylist: (id: string) => Promise<void>;
-  fetchCurrentUserPlaylists: () => Promise<void>;
+  fetchCurrentUserPlaylists: (offset: number) => Promise<void>;
 
   addItemsToPlaylist: (playlist_id: string, uri: string) => Promise<void>;
   removeItemsFromPlaylist: (playlist_id: string, uri: string) => Promise<void>;
@@ -38,6 +41,9 @@ export const usePlaylistStore = create<PlaylistStore>((set, get) => ({
   playlist: null,
   currentUserPlaylists: null,
   playlistTracksMap: {},
+
+  nextPlaylistsUrl: null,
+  prevPlaylistsUrl: null,
 
   loadingPlaylist: false,
   loadingCurrentUserPlaylists: false,
@@ -66,12 +72,16 @@ export const usePlaylistStore = create<PlaylistStore>((set, get) => ({
     }
   },
 
-  fetchCurrentUserPlaylists: async () => {
+  fetchCurrentUserPlaylists: async (offset) => {
     set({ loadingCurrentUserPlaylists: true });
 
     try {
-      const data = await getCurrentUserPlaylists();
-      set({ currentUserPlaylists: data });
+      const data = await getCurrentUserPlaylists(offset);
+      set({
+        currentUserPlaylists: data,
+        nextPlaylistsUrl: data.next,
+        prevPlaylistsUrl: data.previous,
+      });
     } catch (error) {
       console.error("Failed to fetch current user playlists", error);
     } finally {
@@ -80,7 +90,7 @@ export const usePlaylistStore = create<PlaylistStore>((set, get) => ({
   },
 
   addItemsToPlaylist: async (playlist_id, uri) => {
-    const { playlist, fetchPlaylist, playlistTracksMap } = get();
+    const { playlistTracksMap } = get();
     try {
       if (playlistTracksMap[uri]) {
         console.log("Track already exists in playlist");
@@ -101,12 +111,16 @@ export const usePlaylistStore = create<PlaylistStore>((set, get) => ({
     const { playlist, playlistTracksMap } = get();
 
     try {
+      if (!playlist) return;
+
       await removeItemsFromPlaylist(playlist_id, uri);
 
       const updated = { ...playlist };
-      updated.tracks.items = updated.tracks.items.filter(
-        (item) => item.track.uri !== uri,
-      );
+      if (updated.tracks) {
+        updated.tracks.items = updated.tracks.items.filter(
+          (item) => item.track.uri !== uri,
+        );
+      }
 
       const newPlaylistTracksMap = { ...playlistTracksMap };
       newPlaylistTracksMap[uri] = false;
@@ -129,7 +143,7 @@ export const usePlaylistStore = create<PlaylistStore>((set, get) => ({
 
       // NECESARIO ????????????????
       // Refresh user playlists
-      await fetchCurrentUserPlaylists();
+      await fetchCurrentUserPlaylists(0);
 
       return newPlaylist.id;
     } catch (error) {
