@@ -1,5 +1,5 @@
 import { useAuthStore } from "../stores/useAuthStore";
-import type { TrackType } from "../types/spotify";
+import type { TracksPageType } from "../types/spotify";
 
 // -------------------------------------------------------------------------------
 // Get Track ??
@@ -13,13 +13,18 @@ import type { TrackType } from "../types/spotify";
 // Get User's Saved Tracks => Page of tracks
 // -------------------------------------------------------------------------------
 
-export const getUserSavedTracks = async (limit: number, offset: number) => {
+export const getUserSavedTracks = async (
+  offset: number,
+): Promise<TracksPageType> => {
   const token = await useAuthStore.getState().getAccessToken();
 
-  const res = await fetch("https://api.spotify.com/v1/me/tracks", {
-    method: "GET",
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  const res = await fetch(
+    `https://api.spotify.com/v1/me/tracks?offset=${offset}`,
+    {
+      method: "GET",
+      headers: { Authorization: `Bearer ${token}` },
+    },
+  );
 
   if (!res.ok) throw new Error("Failed to get user saved tracks");
 

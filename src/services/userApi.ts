@@ -67,11 +67,16 @@ export const unFollowPlaylist = async (playlist_id: string): Promise<void> => {
 // Get Followes Artists
 // ----------------------------------------------------------------------------------
 
-export const getFollowedArtists = async () => {
+export const getFollowedArtists = async (after?: string, before?: string) => {
   const token = await useAuthStore.getState().getAccessToken();
 
+  const params = new URLSearchParams({ type: "artist" });
+  if (after && before) throw new Error("Cannot specify both after and before");
+  if (after) params.append("after", after);
+  if (before) params.append("before", before);
+
   const res = await fetch(
-    `https://api.spotify.com/v1/me/following?type=artist`,
+    `https://api.spotify.com/v1/me/following?${params.toString()}`,
     {
       method: "GET",
       headers: { Authorization: `Bearer ${token}` },

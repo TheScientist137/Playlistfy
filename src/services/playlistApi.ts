@@ -1,5 +1,5 @@
 import { useAuthStore } from "../stores/useAuthStore";
-import type { UserPlaylistListType, PlaylistType } from "../types/spotify";
+import type { PlaylistsPageType, PlaylistType } from "../types/spotify";
 
 // -------------------------------------------------------------------------------
 // Get Playlist
@@ -85,19 +85,23 @@ export const removeItemsFromPlaylist = async (
 // Get Current User's Playlists
 // -------------------------------------------------------------------------------
 
-export const getCurrentUserPlaylists =
-  async (): Promise<UserPlaylistListType> => {
-    const token = await useAuthStore.getState().getAccessToken();
+export const getCurrentUserPlaylists = async (
+  offset: number,
+): Promise<PlaylistsPageType> => {
+  const token = await useAuthStore.getState().getAccessToken();
 
-    const res = await fetch(`https://api.spotify.com/v1/me/playlists`, {
+  const res = await fetch(
+    `https://api.spotify.com/v1/me/playlists?limit=${10}&offset=${offset}`,
+    {
       method: "GET",
       headers: { Authorization: `Bearer ${token}` },
-    });
+    },
+  );
 
-    if (!res.ok) throw new Error("Error getting user playlists");
+  if (!res.ok) throw new Error("Error getting user playlists");
 
-    return res.json();
-  };
+  return res.json();
+};
 
 // -------------------------------------------------------------------------------
 // Get User's Playlists
