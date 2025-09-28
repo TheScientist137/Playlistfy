@@ -23,11 +23,9 @@ export default function Album() {
     checkSavedAlbums([id]);
   }, []);
 
-  const handleSaveAlbum = async (albumId: string) => {
+  const handleSaveAlbum = (albumId: string) => {
     const currentlySaved = savedAlbumsMap[albumId];
-    currentlySaved
-      ? await removeSavedAlbums(albumId)
-      : await saveAlbums(albumId);
+    currentlySaved ? removeSavedAlbums(albumId) : saveAlbums(albumId);
   };
 
   if (loadingAlbum || !album) return <Loading />;
