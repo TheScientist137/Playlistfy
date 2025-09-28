@@ -13,7 +13,7 @@ export default function Dashboard() {
   useEffect(() => {
     fetchProfile();
     initPlayer();
-  }, [fetchProfile, initPlayer]); // comprobar necesariedad
+  }, []); // comprobar necesariedad
 
   return (
     <div className="h-screen w-full flex flex-col justify-between bg-stone-950 text-white">
