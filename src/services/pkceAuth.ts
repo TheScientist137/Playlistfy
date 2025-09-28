@@ -18,9 +18,14 @@ const SCOPES = [
   "user-read-email",
   "playlist-modify-public",
   "playlist-modify-private",
+  "playlist-read-private",
   "user-read-playback-state",
   "user-modify-playback-state",
   "ugc-image-upload",
+  "user-library-read",
+  "user-library-modify",
+  "user-follow-read",
+  "user-follow-modify",
 ];
 
 // ---------------------------------------------------------------------------
@@ -123,7 +128,7 @@ export const exchangeCodeForToken = async (code: string) => {
 // Refresh Access token using refresh_token and expires_in
 // ---------------------------------------------------------------------------
 
-const getRefreshToken = async (): Promise<string> => {
+export const getRefreshToken = async (): Promise<string> => {
   const refreshToken = localStorage.getItem("refresh_token");
   if (!refreshToken) throw new Error("No refres_token in storage");
 
@@ -145,7 +150,10 @@ const getRefreshToken = async (): Promise<string> => {
 
   // Update refresh_token
   if (data.refresh_token)
-    window.localStorage.setItem("refresh_token", data.refresh_token);
+    window.localStorage.setItem(
+      "refresh_token",
+      data.refresh_token || refreshToken,
+    );
 
   // Update expires_in
   if (data.expires_in) {
