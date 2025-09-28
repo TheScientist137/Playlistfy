@@ -1,12 +1,17 @@
 import { useEffect } from "react";
 import { Link, useSearchParams } from "react-router";
+
 import { useSearchStore } from "../stores/useSearchStore";
 import { useAlbumStore } from "../stores/useAlbumStore";
 import { useUserStore } from "../stores/useUserStore";
+
 import Track from "../components/Track";
 import SearchBar from "../components/SearchBar";
+import Pagination from "../components/Pagination";
+
 import { FiPlusCircle, FiMinusCircle } from "react-icons/fi";
-import type { SearchResponse, SearchType } from "../types/spotify";
+
+import type { SearchResponse } from "../types/spotify";
 
 export default function SearchResults() {
   const [searchParams] = useSearchParams(); // Read url
@@ -35,13 +40,13 @@ export default function SearchResults() {
   // Component mounts => read URL => upload store
   useEffect(() => {
     const q = searchParams.get("q") || "";
-    const type = (searchParams.get("type") as SearchType) || "track";
+    const type = (searchParams.get("type") as string) || "track";
     const offset = Number(searchParams.get("offset")) || 0;
 
     setSearchQuery(q);
     setSearchType(type);
     setSearchOffset(offset);
-  }, []);
+  }, [searchParams]);
 
   // if there is a query => Search => Upload URL with store values
   useEffect(() => {
@@ -57,6 +62,7 @@ export default function SearchResults() {
     window.history.replaceState(null, "", `?${newParams.toString()}`);
   }, [searchQuery, searchType, searchOffset]);
 
+  // Clear search state when component unmounts
   useEffect(() => {
     return () => useSearchStore.getState().resetSearch();
   }, []);
@@ -65,26 +71,21 @@ export default function SearchResults() {
   const pageType = searchType + "s";
   const results = searchResults?.[pageType as keyof SearchResponse];
   const total = results?.total ?? 0;
-
-  const currentPage = Math.floor(searchOffset / searchLimit) + 1;
-  const totalPages = Math.ceil(total / searchLimit);
-
-  const nextOffset = searchOffset + searchLimit;
-  const prevOffset = searchOffset - searchLimit;
-
-  const canNext = nextOffset < total;
-  const canPrev = searchOffset > 0;
-
-  const nextPage = () => canNext && setSearchOffset(nextOffset);
-  const prevPage = () => canPrev && setSearchOffset(prevOffset);
+  const next = results?.next;
+  const previous = results?.previous;
 
   // Type tabs
-  const tabs: { label: string; value: SearchType }[] = [
+  const tabs: { label: string; value: string }[] = [
     { label: "Songs", value: "track" },
     { label: "Albums", value: "album" },
     { label: "Artists", value: "artist" },
     { label: "Playlists", value: "playlist" },
   ];
+
+  const handleTabChange = (newType: string) => {
+    setSearchType(newType);
+    setSearchOffset(0);
+  };
 
   const handleSaveAlbum = async (albumId: string) => {
     const currentlySaved = savedAlbumsMap[albumId];
@@ -105,6 +106,8 @@ export default function SearchResults() {
       : await followPlaylist(playlistId);
   };
 
+  // set an error to show if no results was found!
+
   return (
     <div className="h-full flex flex-col items-center">
       <SearchBar />
@@ -113,7 +116,7 @@ export default function SearchResults() {
         {tabs.map((tab) => (
           <button
             key={tab.value}
-            onClick={() => setSearchType(tab.value)}
+            onClick={() => handleTabChange(tab.value)}
             className="p-2 bg-stone-800 rounded-lg cursor-pointer"
           >
             {tab.label}
@@ -124,115 +127,113 @@ export default function SearchResults() {
       {loadingSearch && <p>Searching…</p>}
 
       {searchResults && (
-        <ul className="w-full flex flex-col items-center gap-6 mt-4 overflow-auto">
-          {searchType === "track" &&
-            searchResults.tracks?.items.map((item) => (
-              <li key={item.id} className="w-full">
-                <Track track={item} context="search" />
-              </li>
-            ))}
+        <>
+          <ul className="w-full flex flex-col items-center gap-6 mt-4 overflow-auto">
+            {searchType === "track" &&
+              searchResults.tracks?.items.map((item) => (
+                <li key={item.id} className="w-full">
+                  <Track track={item} context="search" />
+                </li>
+              ))}
 
-          {searchType === "album" &&
-            searchResults.albums?.items.map((item) => (
-              <li
-                key={item.id}
-                className="w-full px-6 flex justify-between items-center gap-8"
-              >
-                <Link to={`/album/${item.id}`} className="w-full flex gap-4">
-                  <img src={item.images[0]?.url} className="size-16" />
-                  <div className="flex flex-col justify-center">
-                    <span>{item.name}</span>
-                    <span className="text-stone-400">
-                      {item.artists[0]?.name}
-                    </span>
-                  </div>
-                </Link>
-
-                <button
-                  onClick={() => handleSaveAlbum(item.id)}
-                  className="cursor-pointer"
-                >
-                  {savedAlbumsMap[item.id] ? (
-                    <FiMinusCircle className="size-5 text-green-500" />
-                  ) : (
-                    <FiPlusCircle className="size-5" />
-                  )}
-                </button>
-              </li>
-            ))}
-
-          {searchType === "artist" &&
-            searchResults.artists?.items.map((item) => (
-              <li
-                key={item.id}
-                className="w-full px-6 flex justify-between items-center gap-8"
-              >
-                <Link
-                  to={`/artist/${item.id}`}
-                  className="w-full flex items-center gap-4"
-                >
-                  <img
-                    src={item.images[0]?.url}
-                    className="size-18 rounded-full"
-                  />
-                  <span>{item.name}</span>
-                </Link>
-
-                <button
-                  onClick={() => handleFollowArtist(item.id)}
-                  className="border rounded-xl px-3 py-1 border-stone-400 border-2 cursor-pointer"
-                >
-                  {followedArtistsMap[item.id] ? "unfollow" : "follow"}
-                </button>
-              </li>
-            ))}
-
-          {searchType === "playlist" &&
-            searchResults.playlists?.items?.map((item) => {
-              if (!item || !item.id) return null;
-              return (
+            {searchType === "album" &&
+              searchResults.albums?.items.map((item) => (
                 <li
                   key={item.id}
                   className="w-full px-6 flex justify-between items-center gap-8"
                 >
-                  <Link
-                    to={`/playlist/${item.id}`}
-                    className="flex items-center gap-4"
-                  >
-                    {item.images?.[0] && (
-                      <img src={item.images[0].url} className="size-16" />
-                    )}
-                    <span>{item.name}</span>
+                  <Link to={`/album/${item.id}`} className="w-full flex gap-4">
+                    <img src={item.images[0]?.url} className="size-16" />
+                    <div className="flex flex-col justify-center">
+                      <span>{item.name}</span>
+                      <span className="text-stone-400">
+                        {item.artists[0]?.name}
+                      </span>
+                    </div>
                   </Link>
 
                   <button
-                    onClick={() => handleFollowPlaylist(item.id)}
+                    onClick={() => handleSaveAlbum(item.id)}
                     className="cursor-pointer"
                   >
-                    {followedPlaylistsMap[item.id] ? (
+                    {savedAlbumsMap[item.id] ? (
                       <FiMinusCircle className="size-5 text-green-500" />
                     ) : (
                       <FiPlusCircle className="size-5" />
                     )}
                   </button>
                 </li>
-              );
-            })}
+              ))}
 
-          {total > 0 && (
-            <nav>
-              <button onClick={prevPage} disabled={!canPrev}>
-                prev
-              </button>
-              <span>
-                Page {currentPage} / {totalPages}
-              </span>
-              <button onClick={nextPage} disabled={!canNext}>
-                next
-              </button>
-            </nav>
-          )}
-        </ul>
+            {searchType === "artist" &&
+              searchResults.artists?.items.map((item) => (
+                <li
+                  key={item.id}
+                  className="w-full px-6 flex justify-between items-center gap-8"
+                >
+                  <Link
+                    to={`/artist/${item.id}`}
+                    className="w-full flex items-center gap-4"
+                  >
+                    <img
+                      src={item.images[0]?.url}
+                      className="size-18 rounded-full"
+                    />
+                    <span>{item.name}</span>
+                  </Link>
+
+                  <button
+                    onClick={() => handleFollowArtist(item.id)}
+                    className="border rounded-xl px-3 py-1 border-stone-400 border-2 cursor-pointer"
+                  >
+                    {followedArtistsMap[item.id] ? "unfollow" : "follow"}
+                  </button>
+                </li>
+              ))}
+
+            {searchType === "playlist" &&
+              searchResults.playlists?.items?.map((item) => {
+                if (!item || !item.id) return null;
+                return (
+                  <li
+                    key={item.id}
+                    className="w-full px-6 flex justify-between items-center gap-8"
+                  >
+                    <Link
+                      to={`/playlist/${item.id}`}
+                      className="flex items-center gap-4"
+                    >
+                      {item.images?.[0] && (
+                        <img src={item.images[0].url} className="size-16" />
+                      )}
+                      <span>{item.name}</span>
+                    </Link>
+
+                    <button
+                      onClick={() => handleFollowPlaylist(item.id)}
+                      className="cursor-pointer"
+                    >
+                      {followedPlaylistsMap[item.id] ? (
+                        <FiMinusCircle className="size-5 text-green-500" />
+                      ) : (
+                        <FiPlusCircle className="size-5" />
+                      )}
+                    </button>
+                  </li>
+                );
+              })}
+          </ul>
+
+          <Pagination
+            mode="offset"
+            total={total}
+            limit={searchLimit}
+            offset={searchOffset}
+            next={next}
+            prev={previous}
+            onPageChange={setSearchOffset}
+          />
+        </>
       )}
     </div>
   );
