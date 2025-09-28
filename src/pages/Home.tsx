@@ -1,5 +1,8 @@
 import { useNavigate } from "react-router";
 import { useUserStore } from "../stores/useUserStore";
+import { useAlbumStore } from "../stores/useAlbumStore";
+import { useTrackStore } from "../stores/useTrackStore";
+import { usePlaylistStore } from "../stores/usePlaylistStore";
 import SearchBar from "../components/SearchBar";
 
 export default function Home() {
@@ -7,6 +10,14 @@ export default function Home() {
   const { profile, loadingProfile } = useUserStore();
 
   if (loadingProfile) return <p>Loading...</p>;
+
+  const handleLibraryClick = () => {
+    useTrackStore.getState().fetchSavedTracks(0);
+    useAlbumStore.getState().fetchSavedAlbums(0);
+    usePlaylistStore.getState().fetchCurrentUserPlaylists(0);
+
+    navigate("/library");
+  };
 
   return (
     <div className="h-full flex flex-col items-center">
@@ -30,7 +41,7 @@ export default function Home() {
 
       <div className="">
         <button
-          onClick={() => navigate("/library")}
+          onClick={() => handleLibraryClick()}
           className="bg-stone-900 hover:bg-stone-800 px-4 py-2 rounded-lg cursor-pointer"
         >
           Your Library
