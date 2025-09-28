@@ -78,6 +78,21 @@ export interface TrackType {
   is_local: boolean;
 }
 
+export interface SavedTracksType {
+  added_at: Date;
+  track: TrackType;
+}
+
+export interface TracksPageType {
+  href: string;
+  limit: number;
+  next: string | null;
+  offset: number;
+  previous: string | null;
+  total: number;
+  items: SavedTracksType[];
+}
+
 // -----------------------------------------------------------------
 // Artists Types
 // -----------------------------------------------------------------
@@ -99,7 +114,7 @@ export interface ArtistTopTracks {
   tracks: TrackType[];
 }
 
-export interface ArtistCursorPage {
+export interface ArtistCursorPageType {
   href: string;
   limit: number;
   next: string;
@@ -108,7 +123,7 @@ export interface ArtistCursorPage {
     before: string;
   };
   total: number;
-  item: ArtistType[];
+  items: ArtistType[];
 }
 
 // -----------------------------------------------------------------
@@ -131,26 +146,63 @@ export interface AlbumType {
   tracks: TrackType;
 }
 
+export interface SavedAlbumsType {
+  added_at: Date;
+  album: AlbumType;
+}
+
+export interface AlbumsPageType {
+  href: string;
+  limit: number;
+  next: string | null;
+  offset: number;
+  previous: string | null;
+  total: number;
+  items: SavedAlbumsType[];
+}
+
 // -----------------------------------------------------------------
 // Playlists Types
 // -----------------------------------------------------------------
+
+export interface Owner {
+  href: string;
+  id: string;
+  type: "user";
+  uri: string;
+  display_name: string | null;
+}
+
+export interface PlaylistsTracks {
+  added_at: Date;
+  is_local: boolean;
+  track: TrackType;
+}
+
+export interface PlaylistTracksPageType {
+  href: string;
+  limit: number;
+  next: string | null;
+  offset: number;
+  previous: string | null;
+  total: number;
+  items: PlaylistsTracks[];
+}
 
 export interface PlaylistType {
   href: string;
   id: string;
   name: string;
+  owner: Owner;
   description: string;
   collaborative: boolean;
   type: string;
   uri: string;
   images?: Image[];
-  tracks: {
-    href: string;
-    total: number;
-  };
+  tracks: PlaylistTracksPageType;
 }
 
-export interface UserPlaylistListType {
+export interface PlaylistsPageType {
   href: string;
   limit: number;
   next: string | null;
@@ -193,7 +245,7 @@ export interface Paginated<Type> {
   limit: number;
   next: string | null;
   offset: number;
-  previous: string;
+  previous: string | null;
   total: number;
   items: Type[];
 }
